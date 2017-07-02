@@ -1,0 +1,68 @@
+<!doctype html>
+<html ng-app="chatApp">
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <div ng-controller='chatCtrl'>
+      <ul id="messages" ng-repeat='message in messages'>
+        <li>{{message}}</li>
+      </ul>
+      <form action="">
+        <input id="m" autocomplete="off" ng-model='msg'/>
+        <button ng-click='sendEvent()'>Send</button>
+      </form>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Load the AngularJS library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.js"></script>
+
+    <!-- Load the JS Module -->
+    <!-- <script src="client.js"></script> -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+      var socket = io();
+      var app = angular.module("chatApp", []);
+
+      app.factory("socketCore", function(){
+        service = {};
+        _messages = [];
+
+        service.getMsgs = function(){
+          console.log(_messages);
+          return _messages;
+        };
+
+        service.sendMsg = function(msg){ //sends chat message
+          socket.emit('chat message', msg);
+        };
+
+        socket.on('chat message', function(msg){ //listener for a received msg
+          _messages.push(msg);
+        });
+
+        return service;
+      });
+
+      app.controller('chatCtrl', function($scope, socketCore){
+        $scope.messages = socketCore.getMsgs();
+        $scope.sendEvent = function(){
+          socketCore.sendMsg($scope.msg);
+          console.log("In send");
+        };
+      });
+    });
+    </script>
+  </body>
+</html>
